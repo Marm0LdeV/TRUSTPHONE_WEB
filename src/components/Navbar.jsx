@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { ShoppingCart, User, Search, ShieldCheck } from 'lucide-react';
 
 export default function Navbar() {
@@ -21,18 +21,40 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-8 text-sm font-medium">
-        <Link to="/" className="text-primary hover:text-blue-800">Inicio</Link>
-        <Link to="/catalogo" className="text-gray-600 hover:text-primary">Catálogo</Link>
-        <Link to="/contacto" className="text-gray-600 hover:text-primary">Contáctanos</Link>
+        <NavLink 
+          to="/" 
+          end 
+          className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}
+        >
+          Inicio
+        </NavLink>
+        <NavLink 
+          to="/catalogo" 
+          className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}
+        >
+          Catálogo
+        </NavLink>
+        <NavLink 
+          to="/contacto" 
+          className={({ isActive }) => isActive ? "text-primary font-bold" : "text-gray-600 hover:text-primary"}
+        >
+          Contáctanos
+        </NavLink>
       </div>
 
       <div className="flex items-center gap-4 ml-8">
-        <Link to="/carrito" className="text-gray-800 hover:text-primary">
+        <NavLink 
+          to="/carrito" 
+          className={({ isActive }) => isActive ? "text-primary" : "text-gray-800 hover:text-primary"}
+        >
           <ShoppingCart className="w-6 h-6" />
-        </Link>
-        <Link to="/login" className="text-gray-800 hover:text-primary">
+        </NavLink>
+        <NavLink 
+          to="/login" 
+          className={({ isActive }) => isActive ? "text-primary" : "text-gray-800 hover:text-primary"}
+        >
           <User className="w-6 h-6" />
-        </Link>
+        </NavLink>
       </div>
     </nav>
   );

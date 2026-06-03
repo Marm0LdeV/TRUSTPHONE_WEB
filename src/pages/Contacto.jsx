@@ -33,7 +33,7 @@ export default function Contacto() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1">ASUNTO</label>
-                <select className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary bg-white">
+                <select defaultValue="Soporte Técnico" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary bg-white">
                   <option>Soporte Técnico</option>
                   <option>Ventas</option>
                   <option>Garantías</option>
@@ -44,7 +44,7 @@ export default function Contacto() {
               <label className="block text-xs font-semibold text-gray-500 mb-1">MENSAJE</label>
               <textarea rows="4" placeholder="¿En qué podemos ayudarte?" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary resize-none"></textarea>
             </div>
-            <button type="button" className="bg-secondary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-900 transition">
+            <button type="submit" className="bg-secondary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-900 transition">
               Enviar Mensaje
             </button>
           </form>
@@ -97,3 +97,4 @@ export default function Contacto() {
     </div>
   );
 }
+
