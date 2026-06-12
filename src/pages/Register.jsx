@@ -38,7 +38,7 @@ export default function Register() {
           nombre,
           Apellido,
           correo: email,
-          contraseña: password,
+          contrasena: password,
           telefono: phone || '000000000'
         })
       });

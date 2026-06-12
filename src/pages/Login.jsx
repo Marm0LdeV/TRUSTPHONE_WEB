@@ -22,7 +22,7 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ correo: email, contraseña: password })
+        body: JSON.stringify({ correo: email, contrasena: password })
       });
       const data = await res.json();
 
