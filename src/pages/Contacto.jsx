@@ -1,6 +1,42 @@
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Phone, Mail, Clock, CheckCircle } from 'lucide-react';
 
 export default function Contacto() {
+  const [formData, setFormData] = useState({
+    nombre: '',
+    email: '',
+    telefono: '',
+    asunto: 'Soporte Técnico',
+    mensaje: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!formData.nombre || !formData.email || !formData.mensaje) {
+      setError('Por favor completa los campos obligatorios (nombre, email y mensaje).');
+      return;
+    }
+    setLoading(true);
+    // Simulated send — backend has no contact endpoint, so we simulate a 1s delay
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSent(true);
+      setFormData({ nombre: '', email: '', telefono: '', asunto: 'Soporte Técnico', mensaje: '' });
+    } catch {
+      setError('Error al enviar el mensaje. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="pb-12">
       {/* Header Banner */}
@@ -15,39 +51,99 @@ export default function Contacto() {
         {/* Formulario */}
         <div className="flex-1 bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <h2 className="text-2xl font-bold mb-6">Envíanos un mensaje</h2>
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">NOMBRE</label>
-                <input type="text" placeholder="Tu nombre completo" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">EMAIL</label>
-                <input type="email" placeholder="correo@ejemplo.com" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" />
-              </div>
+
+          {sent ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+              <h3 className="text-xl font-bold text-gray-800 mb-2">¡Mensaje enviado con éxito!</h3>
+              <p className="text-sm text-gray-500 mb-6">Nuestro equipo se pondrá en contacto contigo en las próximas 24 horas.</p>
+              <button
+                onClick={() => setSent(false)}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition"
+              >
+                Enviar otro mensaje
+              </button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">TELÉFONO</label>
-                <input type="tel" placeholder="+34 000 000 000" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" />
+          ) : (
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {error && (
+                <div className="bg-red-50 text-red-600 text-xs font-semibold p-3 rounded-lg border border-red-100">
+                  {error}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">NOMBRE *</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    placeholder="Tu nombre completo"
+                    required
+                    className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">EMAIL *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="correo@ejemplo.com"
+                    required
+                    className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">TELÉFONO</label>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    placeholder="+34 000 000 000"
+                    className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">ASUNTO</label>
+                  <select
+                    name="asunto"
+                    value={formData.asunto}
+                    onChange={handleChange}
+                    className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary bg-white text-sm"
+                  >
+                    <option>Soporte Técnico</option>
+                    <option>Ventas</option>
+                    <option>Garantías</option>
+                  </select>
+                </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1">ASUNTO</label>
-                <select className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary bg-white">
-                  <option>Soporte Técnico</option>
-                  <option>Ventas</option>
-                  <option>Garantías</option>
-                </select>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">MENSAJE *</label>
+                <textarea
+                  name="mensaje"
+                  value={formData.mensaje}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="¿En qué podemos ayudarte?"
+                  required
+                  className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary resize-none text-sm"
+                ></textarea>
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1">MENSAJE</label>
-              <textarea rows="4" placeholder="¿En qué podemos ayudarte?" className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary resize-none"></textarea>
-            </div>
-            <button type="button" className="bg-secondary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-900 transition">
-              Enviar Mensaje
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-secondary text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-900 transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Enviando...' : 'Enviar Mensaje'}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Info y Mapa */}
@@ -85,7 +181,7 @@ export default function Contacto() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-gray-700 h-48 rounded-2xl flex items-center justify-center flex-col text-white shadow-lg relative overflow-hidden">
              <MapPin className="w-8 h-8 mb-2 z-10" />
              <button className="bg-white text-gray-800 text-xs font-bold px-4 py-2 rounded-full z-10">VER UBICACIÓN EXACTA</button>

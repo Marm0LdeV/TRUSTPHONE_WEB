@@ -1,16 +1,33 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 export default function Catalogo() {
-  const products = [
-    { id: 1, brand: 'Google', name: 'Pixel 10 pro XL', desc: 'Color piedra lunar, 512GB - Excelente', price: 799, image: 'https://m.media-amazon.com/images/I/61T7d8lxk6L._AC_SL1500_.jpg' },
-    { id: 2, brand: 'Xiaomi', name: 'Xiaomi 15 pro Ultra', desc: 'Color negro, 512GB - Bueno', price: 899, image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRY6-sguxWcNQxH1aLZ3q7vTj7jEqyC8oODYw&s' },
-    { id: 3, brand: 'Iphone', name: 'Iphone 17 pro max', desc: 'Color azul, 256GB - Como nuevo', price: 1100, image: 'https://siman.vtexassets.com/arquivos/ids/7360900/998877-1544-1.jpg?v=638956268448200000' },
-    { id: 4, brand: 'Samsung', name: 'Samsung s26 ultra', desc: 'Color violeta, 512GB - Aceptable', price: 799, image: 'https://siman.vtexassets.com/arquivos/ids/7842245/s26ultrablanco-1.jpg?v=639076473326970000https://siman.vtexassets.com/arquivos/ids/7842245/s26ultrablanco-1.jpg?v=639076473326970000https://siman.vtexassets.com/arquivos/ids/7842245/s26ultrablanco-1.jpg?v=639076473326970000' },
-    { id: 5, brand: 'Honor', name: 'Honor magic 7 pro', desc: 'Color blanco, 512GB - Como nuevo', price: 1200, image: 'https://www.celulares.com/fotos/hihonor-magic7-pro-97711-g-alt.jpg' },
-    { id: 6, brand: 'Iphone', name: 'Iphone 16 pro', desc: 'Color dorado, 256GB - Excelente', price: 799, image: 'https://www.lacuracaonline.com/media/catalog/product/4/6/468131600016.jpg?optimize=medium&bg-color=255,255,255&fit=bounds&height=&width=&canvas=:' },
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/celulares')
+      .then(res => res.json())
+      .then(data => {
+        const mappedProducts = data.map(item => ({
+          id: item._id,
+          brand: item.idMarca?.nombre || 'Celular',
+          name: item.nombre,
+          desc: `${item.color || ''}, ${item.almacenamiento || ''} - ${item.condicion || ''}`,
+          price: item.precio || 0,
+          image: item.imagen || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=400&h=400',
+          tag: item.condicion || ''
+        }));
+        setProducts(mappedProducts);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">

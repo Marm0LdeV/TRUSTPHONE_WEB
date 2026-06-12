@@ -1,15 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Truck, Shield } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 export default function Home() {
   const marcas = ['iPhone', 'Samsung', 'Xiaomi', 'Google'];
-  const destacados = [
-    { id: 1, name: 'iPhone 13 Pro Max', price: 649.00, oldPrice: 1099.00, tag: 'Reacondicionado', image: 'https://images.unsplash.com/photo-1592899677977-9c134150f666?auto=format&fit=crop&q=80&w=400&h=400' },
-    { id: 2, name: 'Samsung Galaxy S22 Ultra', price: 589.00, oldPrice: 899.00, tag: 'Excelente estado', image: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&q=80&w=400&h=400' },
-    { id: 3, name: 'iPhone 11 128GB', price: 299.00, oldPrice: 450.00, tag: 'Reacondicionado', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=400&h=400' },
-    { id: 4, name: 'Xiaomi Redmi Note 11', price: 189.00, oldPrice: 250.00, tag: 'Oferta', image: 'https://images.unsplash.com/photo-1598327105666-5b89351cb315?auto=format&fit=crop&q=80&w=400&h=400' },
-  ];
+  const [destacados, setDestacados] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/celulares')
+      .then(res => res.json())
+      .then(data => {
+        const mapped = data.slice(0, 4).map(item => ({
+          id: item._id,
+          name: item.nombre,
+          brand: item.idMarca?.nombre || 'Celular',
+          price: item.precio || 0,
+          oldPrice: (item.precio || 0) * 1.25, // simulated old price
+          tag: item.condicion || 'Excelente',
+          image: item.imagen || 'https://images.unsplash.com/photo-1592899677977-9c134150f666?auto=format&fit=crop&q=80&w=400&h=400'
+        }));
+        setDestacados(mapped);
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <div>

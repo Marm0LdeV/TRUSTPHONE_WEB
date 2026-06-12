@@ -1,29 +1,60 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './assets/components/Layout';
-import Home from './assets/pages/Home';
-import Catalogo from './assets/pages/Catalogo';
-import Carrito from './assets/pages/Carrito';
-import Contacto from './assets/pages/Contacto';
-import Login from './assets/pages/Login';
-import Register from './assets/pages/Register';
-import Perfil from './assets/pages/Perfil';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import PrivateRoute from './components/PrivateRoute';
+import PublicRoute from './components/PublicRoute';
+import Home from './pages/Home';
+import Catalogo from './pages/Catalogo';
+import Carrito from './pages/Carrito';
+import Contacto from './pages/Contacto';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
+import Perfil from './pages/Perfil';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="catalogo" element={<Catalogo />} />
-          <Route path="carrito" element={<Carrito />} />
-          <Route path="contacto" element={<Contacto />} />
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="perfil" element={<Perfil />} />
+          {/* Public-only routes: redirect to home if already logged in */}
+          <Route
+            path="login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="verify-email"
+            element={
+              <PublicRoute>
+                <VerifyEmail />
+              </PublicRoute>
+            }
+          />
+
+          {/* Protected routes: redirect to login if not authenticated */}
+          <Route index element={<PrivateRoute><Home /></PrivateRoute>} />
+          <Route path="catalogo" element={<PrivateRoute><Catalogo /></PrivateRoute>} />
+          <Route path="carrito" element={<PrivateRoute><Carrito /></PrivateRoute>} />
+          <Route path="contacto" element={<PrivateRoute><Contacto /></PrivateRoute>} />
+          <Route path="perfil" element={<PrivateRoute><Perfil /></PrivateRoute>} />
+
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
