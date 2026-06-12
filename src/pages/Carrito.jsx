@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, ShieldCheck, Truck } from 'lucide-react';
-import ProductCard from '../components/ProductCard';
+import { Trash2, ShieldCheck, Truck, Plus, Minus, ShoppingCart } from 'lucide-react';
+import ProductCard from '../components/ProductCard.jsx';
 
 export default function Carrito() {
   const [cartItems, setCartItems] = useState([]);
