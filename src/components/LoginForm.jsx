@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Lock, CheckCircle } from 'lucide-react';
+import { Mail, Lock, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { useForm } from '../hooks/useForm';
 
 export default function LoginForm({ onSubmit, loading, error, justVerified }) {
+  const [showPassword, setShowPassword] = useState(false);
   const { values, handleChange, handleBlur } = useForm({
     email: '',
     password: '',
@@ -65,17 +67,9 @@ export default function LoginForm({ onSubmit, loading, error, justVerified }) {
 
         {/* Password field */}
         <div>
-          <div className="flex justify-between items-center mb-1.5">
-            <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
-              Contraseña
-            </label>
-            <Link
-              to="#"
-              className="text-xs font-medium text-primary hover:text-blue-700 transition-colors hover:underline"
-            >
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
+          <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1.5">
+            Contraseña
+          </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
               <Lock className="w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
@@ -83,15 +77,30 @@ export default function LoginForm({ onSubmit, loading, error, justVerified }) {
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               required
               value={values.password}
               onChange={handleChange}
               onBlur={handleBlur}
               placeholder="••••••••"
-              className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/10 bg-white"
+              className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-12 py-3 text-sm outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/10 bg-white"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+          <div className="flex justify-end mt-2">
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-primary hover:text-blue-700 transition-colors hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
           </div>
         </div>
 

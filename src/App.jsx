@@ -10,6 +10,7 @@ import Perfil from './pages/Perfil';
 import PrivateRoute from './components/PrivateRoute';
 import PublicRoute from './components/PublicRoute';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
 
 function App() {
   return (
@@ -45,6 +46,14 @@ function App() {
             element={
               <PublicRoute>
                 <VerifyEmail />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPassword />
               </PublicRoute>
             }
           />

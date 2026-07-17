@@ -116,10 +116,93 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const requestPasswordReset = useCallback(async (email) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/RecuperarContrasena/requestCode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ correo: email })
+      });
+      const data = await res.json().catch(() => ({}));
+      
+      if (data.message === "Usuario no encontrado") {
+        setError(data.message);
+        return { ok: false, error: data.message };
+      }
+
+      if (res.ok) return { ok: true, data };
+      
+      setError(data.message || 'Error al solicitar el restablecimiento');
+      return { ok: false, error: data.message || 'Error al solicitar el restablecimiento' };
+    } catch (err) {
+      console.error('Request reset error:', err);
+      const msg = 'Error al conectar con el servidor';
+      setError(msg);
+      return { ok: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const verifyPasswordResetCode = useCallback(async (email, code) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/RecuperarContrasena/verifyCode`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ codeRequest: code })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return { ok: true, data };
+      setError(data.message || 'Código incorrecto o expirado');
+      return { ok: false, error: data.message || 'Código incorrecto o expirado' };
+    } catch (err) {
+      console.error('Verify reset code error:', err);
+      const msg = 'Error al conectar con el servidor';
+      setError(msg);
+      return { ok: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email, code, newPassword) => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/RecuperarContrasena/newPassword`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ newPassword: newPassword, confirNewPassword: newPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return { ok: true, data };
+      setError(data.message || 'Error al cambiar la contraseña');
+      return { ok: false, error: data.message || 'Error al cambiar la contraseña' };
+    } catch (err) {
+      console.error('Reset password error:', err);
+      const msg = 'Error al conectar con el servidor';
+      setError(msg);
+      return { ok: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(''), []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, register, verifyCode, clearError, setError, setUser }}>
+    <AuthContext.Provider value={{
+      user, loading, error, login, logout, register, verifyCode,
+      requestPasswordReset, verifyPasswordResetCode, resetPassword,
+      clearError, setError, setUser
+    }}>
       {children}
     </AuthContext.Provider>
   );

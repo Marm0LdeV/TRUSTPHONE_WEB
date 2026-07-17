@@ -103,8 +103,6 @@ export default function Perfil() {
           </div>
           <nav className="space-y-2">
             <a href="#" className="flex items-center gap-3 text-sm font-medium text-primary bg-blue-50 p-3 rounded-lg"><User className="w-4 h-4" /> Mi Cuenta</a>
-            <a href="#" className="flex items-center gap-3 text-sm font-medium text-gray-600 hover:bg-gray-50 p-3 rounded-lg"><Package className="w-4 h-4" /> Mis Pedidos</a>
-            <a href="#" className="flex items-center gap-3 text-sm font-medium text-gray-600 hover:bg-gray-50 p-3 rounded-lg"><Heart className="w-4 h-4" /> Favoritos</a>
             <button 
               onClick={handleLogoutClick}
               className="w-full flex items-center gap-3 text-sm font-medium text-red-600 hover:bg-red-50 p-3 rounded-lg cursor-pointer border-0 text-left bg-transparent"
