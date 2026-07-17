@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Settings, Package, Heart, LogOut } from 'lucide-react';
+import { useForm } from '../hooks/useForm';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Perfil() {
   const navigate = useNavigate();
-  const [client, setClient] = useState(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const { logout, setUser } = useAuth();
   
+  const [client, setClient] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { values, handleChange, setValues } = useForm({
+    nombre: '',
+    Apellido: '',
+    correo: '',
+    telefono: ''
+  });
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -20,13 +26,20 @@ export default function Perfil() {
       navigate('/login');
       return;
     }
-    const parsed = JSON.parse(savedUser);
-    setClient(parsed);
-    setFirstName(parsed.nombre || '');
-    setLastName(parsed.Apellido || '');
-    setEmail(parsed.correo || '');
-    setPhone(parsed.telefono || '');
-  }, [navigate]);
+    try {
+      const parsed = JSON.parse(savedUser);
+      setClient(parsed);
+      setValues({
+        nombre: parsed.nombre || '',
+        Apellido: parsed.Apellido || '',
+        correo: parsed.correo || '',
+        telefono: parsed.telefono || ''
+      });
+    } catch (e) {
+      console.error(e);
+      navigate('/login');
+    }
+  }, [navigate, setValues]);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -39,19 +52,20 @@ export default function Perfil() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: firstName,
-          Apellido: lastName,
-          correo: email,
-          telefono: phone
+          nombre: values.nombre,
+          Apellido: values.Apellido,
+          correo: values.correo,
+          telefono: values.telefono
         })
       });
+      const data = await res.json();
       if (res.ok) {
         setMessage('¡Perfil actualizado con éxito!');
-        const updated = { ...client, nombre: firstName, Apellido: lastName, correo: email, telefono: phone };
+        const updated = { ...client, ...data.cliente };
         localStorage.setItem('user', JSON.stringify(updated));
         setClient(updated);
+        setUser(updated); // Actualizar estado de autenticación global
       } else {
-        const data = await res.json();
         setError(data.message || 'Error al actualizar el perfil');
       }
     } catch (err) {
@@ -62,15 +76,9 @@ export default function Perfil() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/logout', { method: 'POST' });
-    } catch (err) {
-      console.error(err);
-    }
-    localStorage.removeItem('user');
-    localStorage.removeItem('cart');
-    navigate('/login', { replace: true });
+  const handleLogoutClick = async () => {
+    navigate('/', { replace: true });
+    await logout();
   };
 
   if (!client) {
@@ -90,15 +98,15 @@ export default function Perfil() {
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-3">
               <User className="w-10 h-10 text-primary" />
             </div>
-            <h3 className="font-bold text-lg">{firstName} {lastName}</h3>
-            <p className="text-xs text-gray-500 truncate w-full">{email}</p>
+            <h3 className="font-bold text-lg">{values.nombre} {values.Apellido}</h3>
+            <p className="text-xs text-gray-500 truncate w-full">{values.correo}</p>
           </div>
           <nav className="space-y-2">
             <a href="#" className="flex items-center gap-3 text-sm font-medium text-primary bg-blue-50 p-3 rounded-lg"><User className="w-4 h-4" /> Mi Cuenta</a>
             <a href="#" className="flex items-center gap-3 text-sm font-medium text-gray-600 hover:bg-gray-50 p-3 rounded-lg"><Package className="w-4 h-4" /> Mis Pedidos</a>
             <a href="#" className="flex items-center gap-3 text-sm font-medium text-gray-600 hover:bg-gray-50 p-3 rounded-lg"><Heart className="w-4 h-4" /> Favoritos</a>
             <button 
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               className="w-full flex items-center gap-3 text-sm font-medium text-red-600 hover:bg-red-50 p-3 rounded-lg cursor-pointer border-0 text-left bg-transparent"
             >
               <LogOut className="w-4 h-4" /> Cerrar Sesión
@@ -130,9 +138,10 @@ export default function Perfil() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                 <input 
                   type="text" 
+                  name="nombre"
                   required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  value={values.nombre}
+                  onChange={handleChange}
                   className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" 
                 />
               </div>
@@ -140,9 +149,10 @@ export default function Perfil() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
                 <input 
                   type="text" 
+                  name="Apellido"
                   required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  value={values.Apellido}
+                  onChange={handleChange}
                   className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" 
                 />
               </div>
@@ -151,9 +161,10 @@ export default function Perfil() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
               <input 
                 type="email" 
+                name="correo"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={values.correo}
+                onChange={handleChange}
                 className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" 
               />
             </div>
@@ -161,8 +172,9 @@ export default function Perfil() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
               <input 
                 type="tel" 
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                name="telefono"
+                value={values.telefono}
+                onChange={handleChange}
                 placeholder="+34 600 000 000" 
                 className="w-full border rounded-lg px-4 py-2 outline-none focus:border-primary" 
               />

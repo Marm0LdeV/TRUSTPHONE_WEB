@@ -1,25 +1,15 @@
-import { Link, useNavigate, useLocation, NavLink } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingCart, User, Search, ShieldCheck, LogOut, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-
-  // Sync user state on every render (catches login/logout from other tabs too)
-  useEffect(() => {
-    const syncUser = () => {
-      const stored = localStorage.getItem('user');
-      setUser(stored ? JSON.parse(stored) : null);
-    };
-    syncUser();
-    window.addEventListener('storage', syncUser);
-    return () => window.removeEventListener('storage', syncUser);
-  }, []);
 
   // Real cart count from localStorage
   const [cartCount, setCartCount] = useState(0);
@@ -56,14 +46,9 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    try { await fetch('/api/logout', { method: 'POST' }); } catch {}
-    localStorage.removeItem('user');
-    localStorage.removeItem('cart');
-    setUser(null);
     setDropdownOpen(false);
-    // replace: true removes the current entry from history stack so
-    // pressing Back after logout won't show the protected page
-    navigate('/login', { replace: true });
+    navigate('/', { replace: true });
+    await logout();
   };
 
   const displayName = user ? `${user.nombre || ''}`.trim() || 'Mi Cuenta' : null;
@@ -75,39 +60,24 @@ export default function Navbar() {
         <span>TRUSTPHONE</span>
       </Link>
 
-      {user && (
-        <>
-          <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Buscar celulares..."
-                className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-4 outline-none focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </div>
 
-          <div className="flex items-center gap-8 text-sm font-medium">
-            <Link to="/" className={path === '/' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Inicio</Link>
-            <Link to="/catalogo" className={path === '/catalogo' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Catálogo</Link>
-            <Link to="/contacto" className={path === '/contacto' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Contáctanos</Link>
-          </div>
-        </>
-      )}
+
+      <div className="flex items-center gap-8 text-sm font-medium ml-auto mr-12">
+        <Link to="/" className={path === '/' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Inicio</Link>
+        <Link to="/catalogo" className={path === '/catalogo' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Catálogo</Link>
+        <Link to="/contacto" className={path === '/contacto' ? "text-primary font-bold hover:text-blue-800" : "text-gray-600 hover:text-primary"}>Contáctanos</Link>
+      </div>
 
       <div className="flex items-center gap-4 ml-8">
         {/* Cart icon with badge */}
-        {user && (
-          <Link to="/carrito" className={`${path === '/carrito' ? 'text-primary' : 'text-gray-800'} hover:text-primary relative`}>
-            <ShoppingCart className="w-6 h-6" />
-            {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-white">
-                {cartCount > 99 ? '99+' : cartCount}
-              </span>
-            )}
-          </Link>
-        )}
+        <Link to="/carrito" className={`${path === '/carrito' ? 'text-primary' : 'text-gray-800'} hover:text-primary relative`}>
+          <ShoppingCart className="w-6 h-6" />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center border border-white">
+              {cartCount > 99 ? '99+' : cartCount}
+            </span>
+          )}
+        </Link>
 
         {/* User section */}
         {user ? (

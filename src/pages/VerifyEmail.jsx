@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShieldCheck, Mail, ArrowLeft, CheckCircle, AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
   const location = useLocation();
   const emailFromState = location.state?.email || '';
+  const { verifyCode } = useAuth();
 
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -95,36 +97,23 @@ export default function VerifyEmail() {
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/registroClientes/verifyCodeEmail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ correo: emailFromState, verificationCodeRequest: fullCode })
-      });
+    const result = await verifyCode(emailFromState, fullCode);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess('¡Cuenta verificada correctamente!');
-        setSuccessAnim(true);
-        setTimeout(() => {
-          navigate('/login', { state: { verified: true } });
-        }, 2000);
-      } else {
-        setError(data.message || 'Código incorrecto o expirado');
-        setShakeError(true);
-        setTimeout(() => setShakeError(false), 600);
-        // Clear the code inputs
-        setCode(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Error al conectar con el servidor');
-    } finally {
-      setLoading(false);
+    if (result.ok) {
+      setSuccess('¡Cuenta verificada correctamente!');
+      setSuccessAnim(true);
+      setTimeout(() => {
+        navigate('/login', { state: { verified: true } });
+      }, 2000);
+    } else {
+      setError(result.error);
+      setShakeError(true);
+      setTimeout(() => setShakeError(false), 600);
+      // Clear the code inputs
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
     }
+    setLoading(false);
   };
 
   const timerPercentage = (timeLeft / (15 * 60)) * 100;
@@ -207,6 +196,7 @@ export default function VerifyEmail() {
                 'Ingresa el código hexadecimal que enviamos a tu correo electrónico'
               )}
             </p>
+
           </div>
 
           {/* Timer */}

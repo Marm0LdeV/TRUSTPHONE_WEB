@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 /**
  * PublicRoute — wraps routes only accessible when NOT logged in (login, register).
@@ -6,10 +7,9 @@ import { Navigate, useLocation } from 'react-router-dom';
  */
 export default function PublicRoute({ children }) {
   const location = useLocation();
-  const user = localStorage.getItem('user');
+  const { user } = useAuth();
 
   if (user) {
-    // Already authenticated — send to home (or wherever they came from)
     const destination = location.state?.from?.pathname || '/';
     return <Navigate to={destination} replace />;
   }

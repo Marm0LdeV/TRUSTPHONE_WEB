@@ -1,12 +1,33 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Check } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import Swal from 'sweetalert2';
 
 export default function ProductCard({ product }) {
   const [added, setAdded] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleAddToCart = () => {
+    if (!user) {
+      Swal.fire({
+        title: 'Inicio de sesión requerido',
+        text: 'Debes iniciar sesión para agregar productos al carrito.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#4b5563',
+        confirmButtonText: 'Iniciar sesión',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/login');
+        }
+      });
+      return;
+    }
+
     try {
       const stored = localStorage.getItem('cart');
       const cart = stored ? JSON.parse(stored) : [];

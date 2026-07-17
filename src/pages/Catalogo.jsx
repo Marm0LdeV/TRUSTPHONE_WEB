@@ -1,36 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useFetch } from '../hooks/useFetch';
 import ProductCard from '../components/ProductCard';
 
 export default function Catalogo() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error } = useFetch('/api/celulares');
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedConditions, setSelectedConditions] = useState([]);
 
-  useEffect(() => {
-    fetch('/api/celulares')
-      .then(res => res.json())
-      .then(data => {
-        const mappedProducts = data.map(item => ({
-          id: item._id,
-          brand: item.idMarca?.nombre || 'Celular',
-          name: item.nombre,
-          desc: `${item.color || ''}, ${item.almacenamiento || ''} - ${item.condicion || ''}`,
-          price: item.precio || 0,
-          image: item.imagen || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=400&h=400',
-          tag: item.condicion || ''
-        }));
-        setProducts(mappedProducts);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+  const products = data ? data.map(item => ({
+    id: item._id,
+    brand: item.idMarca?.nombre || item.idMarca?.name || 'Celular',
+    name: item.nombre,
+    desc: `${item.color || ''}, ${item.almacenamiento || ''} - ${item.condicion || ''}`,
+    price: item.precio || 0,
+    image: item.imagen || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=400&h=400',
+    tag: item.condicion || ''
+  })) : [];
+
+  const handleBrandChange = (marca) => {
+    setSelectedBrands(prev => 
+      prev.includes(marca) ? prev.filter(m => m !== marca) : [...prev, marca]
+    );
+  };
+
+  const handleConditionChange = (cond) => {
+    setSelectedConditions(prev => 
+      prev.includes(cond) ? prev.filter(c => c !== cond) : [...prev, cond]
+    );
+  };
+
+  const filteredProducts = useMemo(() => {
+    let result = products;
+    if (selectedBrands.length > 0) {
+      result = result.filter(p => selectedBrands.some(b => p.brand.toLowerCase().includes(b.toLowerCase())));
+    }
+    if (selectedConditions.length > 0) {
+      result = result.filter(p => selectedConditions.some(c => p.tag.toLowerCase() === c.toLowerCase()));
+    }
+    return result;
+  }, [products, selectedBrands, selectedConditions]);
+
+  // Extract unique brands from data to only show existing brands in filter
+  const existingBrands = useMemo(() => {
+    const brands = new Set(products.map(p => p.brand));
+    return Array.from(brands).filter(Boolean);
+  }, [products]);
+
+  // The user asked to show only existing brands, but also to show a message for "the rest".
+  // We'll show a static list, and if a selected brand has no products, we show the message.
+  const ALL_BRANDS = ['iPhone', 'Xiaomi', 'Honor', 'Samsung', 'Google', 'Huawei', 'Motorola'];
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">
+    <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-8 flex gap-8 items-start">
       {/* Sidebar Filtros */}
       <div className="w-64 flex-shrink-0">
         <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm sticky top-24">
@@ -41,9 +62,14 @@ export default function Catalogo() {
           <div className="mb-6">
             <h4 className="font-semibold text-sm mb-3">Marcas</h4>
             <div className="space-y-2 text-sm text-gray-600">
-              {['Iphone', 'Xiaomi', 'Honor', 'Samsung', 'Google'].map(marca => (
+              {ALL_BRANDS.map(marca => (
                 <label key={marca} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded text-primary" defaultChecked />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-primary" 
+                    checked={selectedBrands.includes(marca)}
+                    onChange={() => handleBrandChange(marca)}
+                  />
                   <span>{marca}</span>
                 </label>
               ))}
@@ -55,7 +81,12 @@ export default function Catalogo() {
             <div className="space-y-2 text-sm text-gray-600">
               {['Como nuevo', 'Excelente', 'Bueno', 'Aceptable'].map(cond => (
                 <label key={cond} className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded" />
+                  <input 
+                    type="checkbox" 
+                    className="rounded text-primary"
+                    checked={selectedConditions.includes(cond)}
+                    onChange={() => handleConditionChange(cond)}
+                  />
                   <span>{cond}</span>
                 </label>
               ))}
@@ -78,22 +109,33 @@ export default function Catalogo() {
       </div>
 
       {/* Grid de Productos */}
-      <div className="flex-1">
-        <div className="grid grid-cols-3 gap-6">
-          {products.map(p => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+      <div className="flex-1 min-h-[80vh]">
+        {loading ? (
+          <div className="flex justify-center items-center h-64 w-full">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center font-medium border border-red-100">
+            {error}
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center text-gray-500 py-12">
+            No hay productos que coincidan con estos filtros en este momento.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredProducts.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
 
-        {/* Paginación */}
-        <div className="flex justify-center items-center gap-2 mt-12">
-          <button className="w-10 h-10 rounded-lg bg-secondary text-white font-medium">1</button>
-          <button className="w-10 h-10 rounded-lg bg-white border text-gray-600 font-medium hover:bg-gray-50">2</button>
-          <button className="w-10 h-10 rounded-lg bg-white border text-gray-600 font-medium hover:bg-gray-50">3</button>
-          <span className="text-gray-400">...</span>
-          <button className="w-10 h-10 rounded-lg bg-white border text-gray-600 font-medium hover:bg-gray-50">6</button>
-          <button className="w-10 h-10 rounded-lg bg-white border text-gray-600 font-medium hover:bg-gray-50">&gt;</button>
-        </div>
+            {/* Paginación */}
+            <div className="flex justify-center items-center gap-2 mt-12">
+              <button className="w-10 h-10 rounded-lg bg-blue-600 text-white font-medium">1</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
